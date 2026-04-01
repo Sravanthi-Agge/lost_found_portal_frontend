@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test Page - Lost and Found Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Lost and Found Portal - Test Page</h1>
+        <div id="test-results">
+            <h2>Testing Environment...</h2>
+            <div id="env-test"></div>
+            <div id="api-test"></div>
+        </div>
+    </div>
+
+    <script>
+        // Test basic JavaScript
+        document.getElementById('env-test').innerHTML = '<p class="success">✅ JavaScript Working</p>';
+        
+        // Test API connection
+        async function testAPI() {
+            const apiTest = document.getElementById('api-test');
+            apiTest.innerHTML = '<p>Testing API connection...</p>';
+            
+            try {
+                const response = await fetch('/api/items/all');
+                const data = await response.json();
+                apiTest.innerHTML = `<p class="success">✅ API Working! Found ${data.length} items</p>`;
+            } catch (error) {
+                apiTest.innerHTML = `<p class="error">❌ API Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Run API test
+        testAPI();
+    </script>
+</body>
+</html>

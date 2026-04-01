@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    <button onclick="testAPI()">Test Add Item API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/items/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: 'Test Item from HTML',
+                        description: 'Testing from HTML page',
+                        category: 'Electronics',
+                        location: 'Test Location',
+                        type: 'LOST'
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h3>Success!</h3>
+                    <p>Status: ${response.status}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Error!</h3>
+                    <p>${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
