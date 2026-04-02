@@ -10,8 +10,10 @@ const Navbar = () => {
 
   const handleLogout = () => {
     console.log('Navbar: Logging out user:', user);
+    console.log('Navbar: Clearing localStorage and axios headers');
     logout();
     navigate('/');
+    console.log('Navbar: Logout completed, navigating to home');
   };
 
   return (
@@ -49,14 +51,39 @@ const Navbar = () => {
             {user ? (
               <>
                 <li className="nav-item dropdown">
-                  <button className="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <a 
+                    className="nav-link dropdown-toggle" 
+                    href="#" 
+                    role="button" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false"
+                  >
                     👤 {user.name}
-                  </button>
+                  </a>
                   <ul className="dropdown-menu">
-                    <li><span className="dropdown-item-text">Role: {user.role}</span></li>
+                    <li><span className="dropdown-item-text">Role: {user.role || 'USER'}</span></li>
                     <li><hr className="dropdown-divider" /></li>
-                    <li><button className="dropdown-item" onClick={handleLogout}>Logout</button></li>
+                    <li>
+                      <button 
+                        className="dropdown-item" 
+                        onClick={handleLogout}
+                        style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', padding: '8px 16px' }}
+                      >
+                        🚪 Logout
+                      </button>
+                    </li>
                   </ul>
+                </li>
+                
+                {/* Direct Logout Button */}
+                <li className="nav-item">
+                  <button 
+                    className="btn btn-outline-light btn-sm ms-2" 
+                    onClick={handleLogout}
+                    title="Logout"
+                  >
+                    🚪 Logout
+                  </button>
                 </li>
               </>
             ) : (

@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Use same API base URL as api.js
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -30,7 +33,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       console.log('AuthContext: Attempting login with:', email);
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
       const { token, ...userData } = response.data;
       
       console.log('AuthContext: Login successful, storing token');
@@ -48,9 +51,11 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
-      const response = await axios.post('/api/auth/register', { name, email, password });
+      console.log('AuthContext: Registering user:', { name, email });
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, { name, email, password });
       const { token, ...userData } = response.data;
       
+      console.log('AuthContext: Registration successful:', userData);
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -58,15 +63,31 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('AuthContext: Registration failed:', error);
       return { success: false, error: error.response?.data?.message || 'Registration failed' };
     }
   };
 
   const logout = () => {
+    console.log('AuthContext: Starting logout process');
+    console.log('AuthContext: Current user:', user);
+    
+    // Clear localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // Clear axios headers completely
     delete axios.defaults.headers.common['Authorization'];
+    
+    // Clear user state
     setUser(null);
+    
+    console.log('AuthContext: Logout completed');
+    console.log('AuthContext: localStorage cleared:', {
+      token: localStorage.getItem('token'),
+      user: localStorage.getItem('user'),
+      authHeader: axios.defaults.headers.common['Authorization']
+    });
   };
 
   const isAdmin = () => {

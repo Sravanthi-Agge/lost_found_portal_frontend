@@ -13,10 +13,11 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -55,6 +56,7 @@ const Login = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  placeholder="Enter your email"
                 />
               </div>
 
@@ -67,6 +69,8 @@ const Login = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
                 />
               </div>
 

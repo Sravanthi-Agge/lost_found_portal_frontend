@@ -31,10 +31,13 @@ const ItemForm = ({ onItemAdded, onCancel }) => {
     setError('');
 
     console.log('Submitting item:', formData);
+    console.log('API Base URL:', process.env.REACT_APP_API_URL || 'http://localhost:8080/api');
 
     try {
       const response = await itemAPI.add(formData);
       console.log('Item added successfully:', response.data);
+      console.log('Response status:', response.status);
+      
       onItemAdded(response.data);
       setFormData({
         title: '',
@@ -45,7 +48,25 @@ const ItemForm = ({ onItemAdded, onCancel }) => {
       });
     } catch (error) {
       console.error('Error adding item:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to add item. Please try again.';
+      console.error('Error response:', error.response);
+      console.error('Error status:', error.response?.status);
+      
+      let errorMessage = 'Failed to add item. Please try again.';
+      
+      if (error.code === 'ECONNREFUSED') {
+        errorMessage = 'Cannot connect to backend. Please check if backend is running on port 8080.';
+      } else if (error.response?.status === 0) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Authentication failed. Please login again.';
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || 'Invalid item data. Please check all fields.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setError(errorMessage);
     } finally {
       setLoading(false);

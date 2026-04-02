@@ -8,8 +8,11 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // Add timeout to prevent hanging
+  withCredentials: false, // Important for CORS
 });
 
+// Add request interceptor to always include current token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,6 +21,8 @@ api.interceptors.request.use(
       console.log('API Request with token:', config.method?.toUpperCase(), config.url);
     } else {
       console.log('API Request without token:', config.method?.toUpperCase(), config.url);
+      // Remove any existing Authorization header if no token
+      delete config.headers.Authorization;
     }
     return config;
   },
@@ -26,30 +31,47 @@ api.interceptors.request.use(
   }
 );
 
+// Add response interceptor for better error handling
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.config.url);
+    console.log('API Response:', response.config.method?.toUpperCase(), response.config.url, response.status);
     return response;
   },
   (error) => {
-    console.error('API Error Details:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: {
-        method: error.config?.method?.toUpperCase(),
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-        data: error.config?.data
-      }
-    });
+    console.error('API Error:', error);
+    
+    // Handle network errors specifically
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Backend connection refused - check if backend is running on port 8080');
+    } else if (error.code === 'ERR_NETWORK_CHANGED') {
+      console.error('Network changed - check connection');
+    } else if (error.code === 'ERR_INTERNET_DISCONNECTED') {
+      console.error('Internet disconnected - check connection');
+    }
+    
+    // Don't show alerts for every error, just log them
+    if (error.response?.status === 401) {
+      console.log('Unauthorized - token may be expired');
+      // Auto-logout on 401
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      delete axios.defaults.headers.common['Authorization'];
+      window.location.href = '/login';
+    }
+    
     return Promise.reject(error);
   }
 );
 
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
+  login: (credentials) => {
+    console.log('Login API call:', credentials);
+    return api.post('/auth/login', credentials);
+  },
+  register: (userData) => {
+    console.log('Register API call:', userData);
+    return api.post('/auth/register', userData);
+  }
 };
 
 export const itemAPI = {
@@ -58,6 +80,8 @@ export const itemAPI = {
   add: (itemData) => api.post('/items/add', itemData),
   delete: (id) => api.delete(`/items/${id}`),
   getMyItems: () => api.get('/items/all'), // Temporarily use all items
+  updateStatus: (id, status) => api.put(`/items/${id}/status?status=${status}`),
+  matchItem: (id) => api.post(`/items/${id}/match`),
   
   // Test method without authentication
   testAdd: (itemData) => {

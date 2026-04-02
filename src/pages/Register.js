@@ -25,22 +25,52 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    console.log('Register: Form data submitted:', formData);
 
+    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
+      console.log('Register: Passwords do not match');
       setError('Passwords do not match');
       setLoading(false);
       return;
     }
 
-    const result = await register(formData.name, formData.email, formData.password);
-    
-    if (result.success) {
-      navigate('/dashboard');
-    } else {
-      setError(result.error);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      console.log('Register: Invalid email format');
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
     }
-    
-    setLoading(false);
+
+    // Validate password strength
+    if (formData.password.length < 6) {
+      console.log('Register: Password too short');
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log('Register: Attempting registration...');
+      const result = await register(formData.name, formData.email, formData.password);
+      console.log('Register: Registration response:', result);
+      
+      if (result.success) {
+        console.log('Register: Registration successful');
+        navigate('/dashboard');
+      } else {
+        console.log('Register: Registration failed:', result.error);
+        setError(result.error || 'Registration failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Register: Unexpected error:', error);
+      setError('Registration failed. Please check your congisternection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,6 +117,8 @@ const Register = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  placeholder="Enter your password"
+                  autoComplete="new-password"
                 />
               </div>
 
